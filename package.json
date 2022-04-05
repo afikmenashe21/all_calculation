@@ -10,8 +10,11 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "agentkeepalive": "^4.2.1",
     "axios": "^0.26.1",
+    "json-circular-stringify": "^1.0.1",
     "proxy-checker": "^1.0.0",
+    "superagent": "^7.1.2",
     "web3": "^1.7.1",
     "web3-eth-contract": "^1.6.1",
     "workerpool": "^6.2.0"
