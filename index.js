@@ -11,13 +11,14 @@ const tokenABI = JSON.parse(fs.readFileSync(path.resolve(__dirname, "tokenABI.js
 
 // const address = "0x469823c7B84264D1BAfBcD6010e9cdf1cac305a3"; // bulls // works 20 sec
 // const address = "0xeb6DffB87315a2BdF4dedf72B993AdC960773A0D"; // mec // works 50 sec
-const address = "0xdbcab7a768ea9a00b2ffa5a2eb387cad609e2114"; // Alpha kongs // does not work uri :https://storage.googleapis.com/alphakongclub/metadata/1 download ipfs file
+// const address = "0xdbcab7a768ea9a00b2ffa5a2eb387cad609e2114"; // Alpha kongs // does not work uri :https://storage.googleapis.com/alphakongclub/metadata/1 download ipfs file
 // const address = "0x0d3669C118330B1990bFb416691982f342e5e9F0" // Wabi sabi // works
 // const address = "0xe1BD5802406D41160Aae5a2CD4943E5BA230bfff" // Super Fat // too many requests
 // const address ="0x2b841d4b7ca08D45Cc3DE814de08850dC3008c43" // Skulltool // works https://skulltoons.s3.amazonaws.com/7697.json
 // const address = "0xf61F24c2d93bF2dE187546B14425BF631F28d6dC" // wow // to check whats going over there
 // const address = "0x2Dec96736E7d24e382e25D386457F490Ae64889e" // peaceful // works wrong calculation
 // const address = "0x762Bc5880F128DCAc29cffdDe1Cf7DdF4cFC39Ee" // ??? // 9975 / 10K stops, need retry mechanism
+const address = "0xfa7e3f898c80e31a3aedeae8b0c713a3f9666264" // akuma
 
 // https://mainnet.infura.io/v3/ff83866dfc8a4786a3db399f1bf8af10 // Mine DEV
 // https://mainnet.infura.io/v3/08e6d0e702084c7d9c7664a108369928 // Mine regular
@@ -75,11 +76,8 @@ async function start(startId, step) {
     else if (metadataURL.includes("ipfs://")) {
       metadataURL = metadataURL.replace("ipfs://", "https://ipfs.io/ipfs/")
     }
-    // let metadataURL = "https://challengers.peacefall.xyz/"+(id-1)+".json"
-    // let metadataURL = "https://qm5fuyzuoxfb-wowg-prod.s3.amazonaws.com/t/" + (id - 1)
 
     console.log(metadataURL)
-    // metadataURL=  metadataURL.replace("ipfs://","https://ipfs.io/ipfs/"); // if its like ipfs://skfhksfafakfjhf
 
     // http form
     // const request = https.get(metadataURL, function (response) {
