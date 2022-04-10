@@ -14,7 +14,7 @@ phases:
       - npm install
       - npm install unit.js
   build:
-    commands:
+    commands: 
       - echo Build started on `date`
       - echo Compiling the Node.js code
       - mocha index.js
