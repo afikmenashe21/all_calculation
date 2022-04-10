@@ -8,6 +8,9 @@ const superagent = require('superagent');
 var Agent = require('agentkeepalive');
 const console = require('console');
 var backoff = require('backoff');
+const express = require('express')
+const app = express()
+
 
 const tokenABI = JSON.parse(fs.readFileSync(path.resolve(__dirname, "tokenABI.json")));
 
@@ -16,7 +19,7 @@ const tokenABI = JSON.parse(fs.readFileSync(path.resolve(__dirname, "tokenABI.js
 // const address = "0xdbcab7a768ea9a00b2ffa5a2eb387cad609e2114"; // Alpha kongs // does not work uri :https://storage.googleapis.com/alphakongclub/metadata/1 download ipfs file
 // const address = "0x0d3669C118330B1990bFb416691982f342e5e9F0" // Wabi sabi // works 17 sec
 // const address = "0xe1BD5802406D41160Aae5a2CD4943E5BA230bfff" // Super Fat // too many requests
-const address ="0x2b841d4b7ca08D45Cc3DE814de08850dC3008c43" // Skulltool // works https://skulltoons.s3.amazonaws.com/7697.json
+// const address = "0x2b841d4b7ca08D45Cc3DE814de08850dC3008c43" // Skulltool // works https://skulltoons.s3.amazonaws.com/7697.json
 // const address = "0xf61F24c2d93bF2dE187546B14425BF631F28d6dC" // wow // to check whats going over there
 // const address = "0x2Dec96736E7d24e382e25D386457F490Ae64889e" // peaceful // works wrong calculation
 // const address = "0x762Bc5880F128DCAc29cffdDe1Cf7DdF4cFC39Ee" // ??? // 9975 / 10K stops, need retry mechanism
@@ -27,7 +30,8 @@ const address ="0x2b841d4b7ca08D45Cc3DE814de08850dC3008c43" // Skulltool // work
 // https://mainnet.infura.io/v3/ca05ad2cb2e449d19c2adb6bb0385702 // Nikita
 const web3 = new Web3(new Web3.providers.HttpProvider('https://mainnet.infura.io/v3/08e6d0e702084c7d9c7664a108369928'));
 
-const tokenContract = new web3.eth.Contract(tokenABI, address);
+// var tokenContract = new web3.eth.Contract(tokenABI, address);
+var tokenContract;
 
 var keepaliveAgent = new https.Agent({
   maxSockets: 100,
@@ -37,13 +41,11 @@ var keepaliveAgent = new https.Agent({
 });
 
 var totalSupply;
-var threadNum;
-var remainderNum;
-const map = new Map();
-const attributesMap = new Map();
+var map = new Map();
+var attributesMap = new Map();
 var rarityMap = new Map();
 var imageMap = new Map();
-const failedTokens = new Set()
+var failedTokens = new Set()
 var moreThanOneAtt = 0;
 var lessThanOneAtt = 0;
 var legenderies = 0;
@@ -189,6 +191,14 @@ function parseData() {
     endTime = performance.now()
     console.log(`Method took ${(endTime - startTime) / 1000} seconds`)
     console.log("Done")
+    map = new Map();
+    attributesMap = new Map();
+    rarityMap = new Map();
+    imageMap = new Map();
+    failedTokens = new Set()
+    moreThanOneAtt = 0;
+    lessThanOneAtt = 0;
+    legenderies = 0;
   }
 
 }
@@ -217,11 +227,12 @@ const replaceIdWithToken = (metadataURL, firstToken) => {
   return metadataURL.replace(metadataURL.substring(slashIndex, tokenIndex + 1), "/TOKEN")
 }
 
-async function main() {
+async function main(address, firstToken) {
   startTime = performance.now();
+  tokenContract = new web3.eth.Contract(tokenABI, address);
   totalSupply = await tokenContract.methods.totalSupply().call();
 
-  let firstToken = 0; // 0 or 1
+  // let firstToken = 0; // 0 or 1
   let metadataURL = await tokenContract.methods.tokenURI(firstToken).call();
   metadataURL = fixMetaDataUrl(metadataURL);
   metadataURL = metadataURL.replace("/" + firstToken, "/TOKEN")
@@ -289,9 +300,18 @@ function superAgentCall(metadataURL, id) {
     })
 }
 
-(async function readOsDataNow() {
+const readOsDataNow = async () => {
   osList = await readOsData();
   console.log("Open sea items in variable")
-})()
+}
 
-main();
+// main();
+
+app.get('/', (req, res) => {
+  readOsDataNow();
+  main(req.query.address, parseInt(req.query.firstToken));
+})
+
+app.listen(8080, () => {
+  console.log(`Example app listening on port 8080`)
+})
