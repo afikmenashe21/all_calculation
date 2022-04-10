@@ -18,6 +18,7 @@ phases:
       - echo Build started on `date`
       - echo Compiling the index.js code
       - npm start
+      - echo Build Almost completed on `date`
       # - mocha index.js
   post_build:
     commands:
