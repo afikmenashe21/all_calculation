@@ -80,126 +80,119 @@ function replacer(key, value) {
   }
 }
 
-function parseData() {
+function parseData(res) {
 
   var legenderyArr = [];
   attributesMap.set("Legendary", legenderyArr);
 
   // Count attributes 
-  if (map.size == totalSupply) {
-    map.forEach((values, keys) => {
-      if (values.length > 1) {
-        values.forEach(att => {
-          if (!attributesMap.get(att.trait_type)) {
-            let counterMap = new Map();
-            counterMap.set(att.value, 1);
-            attributesMap.set(att.trait_type, counterMap);
+
+  map.forEach((values, keys) => {
+    if (values.length > 1) {
+      values.forEach(att => {
+        if (!attributesMap.get(att.trait_type)) {
+          let counterMap = new Map();
+          counterMap.set(att.value, 1);
+          attributesMap.set(att.trait_type, counterMap);
+        } else {
+          if (attributesMap.get(att.trait_type).get(att.value)) {
+            // increase
+            attributesMap.get(att.trait_type).set(att.value, attributesMap.get(att.trait_type).get(att.value) + 1);
           } else {
-            if (attributesMap.get(att.trait_type).get(att.value)) {
-              // increase
-              attributesMap.get(att.trait_type).set(att.value, attributesMap.get(att.trait_type).get(att.value) + 1);
-            } else {
-              // insert new trait counter
-              attributesMap.get(att.trait_type).set(att.value, 1);
-            }
-          }
-        })
-        moreThanOneAtt++;
-      } else if (values.length == 1) {
-        console.log("Legendary : " + keys + " Type: " + values[0].value)
-        attributesMap.get("Legendary").push(keys);
-        legenderies++
-      } else {
-        lessThanOneAtt++;
-      }
-    })
-    console.log("Legendaries : " + legenderies);
-    console.log("More than one attributes: " + moreThanOneAtt);
-    console.log("Less than one attributes(Un-revealed) " + lessThanOneAtt);
-
-    // create map between id to rarity
-    let tempStart = performance.now();
-    map.forEach((traits, nftId) => {
-      let rarity = 0;
-      let rarityPercentage;
-      let countOfTraitExistInMap;
-      let trait_val;
-      let sum;
-      if (traits.length != 1) {
-
-        for (let [key, value] of attributesMap) {
-          if (traits.map(trait => trait.trait_type).includes(key)) {
-            // get the attribute count
-            trait_val = traits.find(trait => trait.trait_type === key).value
-            countOfTraitExistInMap = value.get(trait_val)
-            rarityPercentage = countOfTraitExistInMap / totalSupply
-            rarity += (1 / rarityPercentage);
-          } else if (key !== 'Legendary') {
-            sum = countOfTrait(value);
-            rarityPercentage = (totalSupply - sum) / totalSupply
-            rarity += (1 / rarityPercentage);
+            // insert new trait counter
+            attributesMap.get(att.trait_type).set(att.value, 1);
           }
         }
-
-        rarityMap.set(nftId /*+ " -> " + imageMap.get(nftId)*/, rarity);
-      } else {
-        rarityMap.set(nftId /*+ " -> " + imageMap.get(nftId)*/, 999999);
-      }
-    })
-
-    let tempEndTime = performance.now();
-    console.log("calctime: " + (tempEndTime - tempStart) / 1000)
-
-    // sort
-    rarityMap = new Map([...rarityMap.entries()].sort((a, b) => b[1] - a[1]));
-
-    // cut the top 10%
-    let arrayTmp = Array.from(rarityMap).slice(0, rarityMap.size * 0.1)
-    rarityMap = new Map(arrayTmp)
-
-    // convert map to array of objects {id, rank, score}
-    let i = 0;
-    let rarityArray = Array.from(rarityMap, function (item) {
-      i++;
-      return { id: item[0], rank: i, score: item[1] }
-    });
-
-    let availableNfts = [];
-
-    for (var obj in rarityArray) {
-      if (osList.includes(obj.id)) {
-        availableNfts.push(obj);
-      }
+      })
+      moreThanOneAtt++;
+    } else if (values.length == 1) {
+      console.log("Legendary : " + keys + " Type: " + values[0].value)
+      attributesMap.get("Legendary").push(keys);
+      legenderies++
+    } else {
+      lessThanOneAtt++;
     }
+  })
+  console.log("Legendaries : " + legenderies);
+  console.log("More than one attributes: " + moreThanOneAtt);
+  console.log("Less than one attributes(Un-revealed) " + lessThanOneAtt);
 
-    fs.writeFile('results/NFT-stats.json', JSON.stringify(attributesMap, replacer), function (err) {
-      if (err) return console.log(err);
-    });
+  // create map between id to rarity
+  let tempStart = performance.now();
+  map.forEach((traits, nftId) => {
+    let rarity = 0;
+    let rarityPercentage;
+    let countOfTraitExistInMap;
+    let trait_val;
+    let sum;
+    if (traits.length != 1) {
 
-    // fs.writeFile('NFT-rarity-results.json', JSON.stringify(rarityMap, replacer), function (err) {
-    //   if (err) return console.log(err);
-    // });
+      for (let [key, value] of attributesMap) {
+        if (traits.map(trait => trait.trait_type).includes(key)) {
+          // get the attribute count
+          trait_val = traits.find(trait => trait.trait_type === key).value
+          countOfTraitExistInMap = value.get(trait_val)
+          rarityPercentage = countOfTraitExistInMap / totalSupply
+          rarity += (1 / rarityPercentage);
+        } else if (key !== 'Legendary') {
+          sum = countOfTrait(value);
+          rarityPercentage = (totalSupply - sum) / totalSupply
+          rarity += (1 / rarityPercentage);
+        }
+      }
 
-    fs.writeFile('results/NFT-rarity-results.json', JSON.stringify(rarityArray, replacer), function (err) {
-      if (err) return console.log(err);
-    });
+      rarityMap.set(nftId /*+ " -> " + imageMap.get(nftId)*/, rarity);
+    } else {
+      rarityMap.set(nftId /*+ " -> " + imageMap.get(nftId)*/, 999999);
+    }
+  })
 
-    fs.writeFile('results/NFT-available-results.json', JSON.stringify(availableNfts, replacer), function (err) {
-      if (err) return console.log(err);
-    });
+  let tempEndTime = performance.now();
+  console.log("calctime: " + (tempEndTime - tempStart) / 1000)
 
-    endTime = performance.now()
-    console.log(`Method took ${(endTime - startTime) / 1000} seconds`)
-    console.log("Done")
-    map = new Map();
-    attributesMap = new Map();
-    rarityMap = new Map();
-    imageMap = new Map();
-    failedTokens = new Set()
-    moreThanOneAtt = 0;
-    lessThanOneAtt = 0;
-    legenderies = 0;
+  // sort
+  rarityMap = new Map([...rarityMap.entries()].sort((a, b) => b[1] - a[1]));
+
+  // cut the top 10%
+  let arrayTmp = Array.from(rarityMap).slice(0, rarityMap.size * 0.1)
+  rarityMap = new Map(arrayTmp)
+
+  // convert map to array of objects {id, rank, score}
+  let i = 0;
+  let rarityArray = Array.from(rarityMap, function (item) {
+    i++;
+    return { id: item[0], rank: i, score: item[1] }
+  });
+
+  let availableNfts = [];
+
+  for (var obj in rarityArray) {
+    if (osList.includes(obj.id)) {
+      availableNfts.push(obj);
+    }
   }
+
+  fs.writeFile('results/NFT-stats.json', JSON.stringify(attributesMap, replacer), function (err) {
+    if (err) return console.log(err);
+  });
+
+  // fs.writeFile('NFT-rarity-results.json', JSON.stringify(rarityMap, replacer), function (err) {
+  //   if (err) return console.log(err);
+  // });
+
+  fs.writeFile('results/NFT-rarity-results.json', JSON.stringify(rarityArray, replacer), function (err) {
+    if (err) return console.log(err);
+  });
+
+  fs.writeFile('results/NFT-available-results.json', JSON.stringify(availableNfts, replacer), function (err) {
+    if (err) return console.log(err);
+  });
+
+  endTime = performance.now()
+  console.log(`Method took ${(endTime - startTime) / 1000} seconds`)
+  console.log("Done")
+  res.json(rarityArray)
+  clearData();
 
 }
 
@@ -227,7 +220,18 @@ const replaceIdWithToken = (metadataURL, firstToken) => {
   return metadataURL.replace(metadataURL.substring(slashIndex, tokenIndex + 1), "/TOKEN")
 }
 
-async function main(address, firstToken) {
+const clearData = () => {
+  map = new Map();
+  attributesMap = new Map();
+  rarityMap = new Map();
+  imageMap = new Map();
+  failedTokens = new Set()
+  moreThanOneAtt = 0;
+  lessThanOneAtt = 0;
+  legenderies = 0;
+}
+
+async function main(address, firstToken, res) {
   startTime = performance.now();
   tokenContract = new web3.eth.Contract(tokenABI, address);
   totalSupply = await tokenContract.methods.totalSupply().call();
@@ -245,7 +249,7 @@ async function main(address, firstToken) {
     let tempMetadataURL = metadataURL.replace("TOKEN", id);
     console.log(tempMetadataURL)
 
-    var call = backoff.call(superAgentCall, tempMetadataURL, id, function (err, res) {
+    var call = backoff.call(superAgentCall, tempMetadataURL, id, res, function (err, res) {
       console.log('Num retries: ' + call.getNumRetries());
 
       if (err) {
@@ -272,7 +276,7 @@ async function main(address, firstToken) {
 
 }
 
-function superAgentCall(metadataURL, id) {
+function superAgentCall(metadataURL, id, res) {
   // super agent form 
   superagent
     .get(metadataURL)
@@ -291,7 +295,9 @@ function superAgentCall(metadataURL, id) {
           imageMap.set(id, obj.image);
           map.set(id, attr);
           console.log("Map size : " + map.size)
-          parseData()
+          if (map.size == totalSupply) {
+            parseData(res)
+          }
         } catch (error) {
           console.log("Error with parsing : " + id + JSON.parse(response.text))
           failedTokens.add(id);
@@ -306,10 +312,10 @@ const readOsDataNow = async () => {
 }
 
 // main();
- 
-app.get('/', (req, res) => {
+
+app.get('/', async (req, res) => {
   readOsDataNow();
-  main(req.query.address, parseInt(req.query.firstToken));
+  await main(req.query.address, parseInt(req.query.firstToken), res);
 })
 
 app.listen(8080, () => {

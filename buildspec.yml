@@ -7,17 +7,17 @@ phases:
       nodejs: 14
     commands:
       - echo Installing Mocha...
-      - npm install -g mocha
+      # - npm install -g mocha
   pre_build:
     commands:
       - echo Installing source NPM dependencies...
       - npm install
-      - npm install unit.js
+      # - npm install unit.js
   build:
     commands: 
       - echo Build started on `date`
       - echo Compiling the index.js code
-      - npm run build
+      - npm run-script build
       # - npm start
       - echo Build Almost completed on `date`
       # - mocha index.js
@@ -31,10 +31,11 @@ phases:
 artifacts:
   files:
     - index.js
-    - package.json
-    - node_modules/async/*
-    - node_modules/lodash/*
+    - dist/**/*
+    # - request-map.js
+    # - credentials.json
+    - node_modules/**/*
 
-cache:
-  paths:
-    - '/root/.m2/**/*'
+# cache:
+#   paths:
+#     - '/root/.m2/**/*'
