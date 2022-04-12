@@ -192,7 +192,6 @@ function parseData(res) {
   console.log(`Method took ${(endTime - startTime) / 1000} seconds`)
   console.log("Done")
   res.json(rarityArray)
-  clearData();
 
 }
 
@@ -315,6 +314,7 @@ const readOsDataNow = async () => {
 
 app.get('/', async (req, res) => {
   readOsDataNow();
+  clearData();
   await main(req.query.address, parseInt(req.query.firstToken), res);
 })
 
