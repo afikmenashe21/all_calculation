@@ -34,6 +34,8 @@ artifacts:
     - dist/**/*
     - package.json
     - tokenABI.json
+    - resourses/**/*
+    - results/**/*
     # - request-map.js
     # - credentials.json
     - node_modules/**/*
