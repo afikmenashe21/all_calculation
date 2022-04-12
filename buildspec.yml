@@ -32,6 +32,8 @@ artifacts:
   files:
     - index.js
     - dist/**/*
+    - package.json
+    - tokenABI.json
     # - request-map.js
     # - credentials.json
     - node_modules/**/*
