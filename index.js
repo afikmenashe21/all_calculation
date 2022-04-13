@@ -41,14 +41,9 @@ var keepaliveAgent = new https.Agent({
 });
 
 var totalSupply;
-var map = new Map();
-var attributesMap = new Map();
-var rarityMap = new Map();
 var imageMap = new Map();
 var failedTokens = new Set()
-var moreThanOneAtt = 0;
-var lessThanOneAtt = 0;
-var legenderies = 0;
+
 var startTime;
 var endTime;
 var osList;
@@ -80,8 +75,12 @@ function replacer(key, value) {
   }
 }
 
-function parseData(res) {
-
+function parseData(res, map) {
+  var attributesMap = new Map();
+  var rarityMap = new Map();
+  var moreThanOneAtt = 0;
+  var lessThanOneAtt = 0;
+  var legenderies = 0;
   var legenderyArr = [];
   attributesMap.set("Legendary", legenderyArr);
 
@@ -220,7 +219,7 @@ const replaceIdWithToken = (metadataURL, firstToken) => {
 }
 
 const clearData = () => {
-  map = new Map();
+  // map = new Map();
   attributesMap = new Map();
   rarityMap = new Map();
   imageMap = new Map();
@@ -242,13 +241,15 @@ async function main(address, firstToken, res) {
   // metadataURL = replaceIdWithToken(metadataURL, firstToken)
   console.log(metadataURL);
 
+  let map = new Map();
+
   for (let id = firstToken; id < parseInt(totalSupply) + firstToken; id++) {
 
     // let tempMetadataURL = await tokenContract.methods.tokenURI(id).call();
     let tempMetadataURL = metadataURL.replace("TOKEN", id);
     console.log(tempMetadataURL)
 
-    var call = backoff.call(superAgentCall, tempMetadataURL, id, res, function (err, res) {
+    var call = backoff.call(superAgentCall, tempMetadataURL, id, res, map, function (err, res) {
       console.log('Num retries: ' + call.getNumRetries());
 
       if (err) {
@@ -275,7 +276,7 @@ async function main(address, firstToken, res) {
 
 }
 
-function superAgentCall(metadataURL, id, res) {
+function superAgentCall(metadataURL, id, res, map) {
   // super agent form 
   superagent
     .get(metadataURL)
@@ -295,7 +296,7 @@ function superAgentCall(metadataURL, id, res) {
           map.set(id, attr);
           console.log("Map size : " + map.size)
           if (map.size == totalSupply) {
-            parseData(res)
+            parseData(res, map)
           }
         } catch (error) {
           console.log("Error with parsing : " + id + JSON.parse(response.text))
@@ -314,7 +315,7 @@ const readOsDataNow = async () => {
 
 app.get('/', async (req, res) => {
   readOsDataNow();
-  clearData();
+  // clearData();
   await main(req.query.address, parseInt(req.query.firstToken), res);
 })
 
