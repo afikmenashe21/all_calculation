@@ -248,29 +248,30 @@ async function main(address, firstToken, res) {
     // let tempMetadataURL = await tokenContract.methods.tokenURI(id).call();
     let tempMetadataURL = metadataURL.replace("TOKEN", id);
     console.log(tempMetadataURL)
+    superAgentCall(tempMetadataURL, id, res, map);
 
-    var call = backoff.call(superAgentCall, tempMetadataURL, id, res, map, function (err, res) {
-      console.log('Num retries: ' + call.getNumRetries());
+    // var call = backoff.call(superAgentCall, tempMetadataURL, id, res, map, function (err, res) {
+    //   console.log('Num retries: ' + call.getNumRetries());
 
-      if (err) {
-        console.log('Error: ' + err.message);
-        fs.writeFile('Error-' + id + '.json', "aadafda", function (err) {
-          if (err) return console.log(err);
-        });
-      } else {
-        console.log('Status: ' + res.statusCode);
-      }
-    });
+    //   if (err) {
+    //     console.log('Error: ' + err.message);
+    //     fs.writeFile('Error-' + id + '.json', "aadafda", function (err) {
+    //       if (err) return console.log(err);
+    //     });
+    //   } else {
+    //     console.log('Status: ' + res.statusCode);
+    //   }
+    // });
 
-    call.retryIf(function (err) { return err.status == 504 || err.status == 503 || err.status == 404; });
-    call.setStrategy(new backoff.FibonacciStrategy());
-    call.failAfter(4);
-    call.addListener("backoff", (number, delay, err) => {
-      fs.writeFile('Error2-' + id + '.json', number + delay + err, function (err) {
-        if (err) return console.log(err);
-      });
-    })
-    call.start();
+    // call.retryIf(function (err) { return err.status == 504 || err.status == 503 || err.status == 404; });
+    // call.setStrategy(new backoff.FibonacciStrategy());
+    // call.failAfter(4);
+    // call.addListener("backoff", (number, delay, err) => {
+    //   fs.writeFile('Error2-' + id + '.json', number + delay + err, function (err) {
+    //     if (err) return console.log(err);
+    //   });
+    // })
+    // call.start();
 
   }
 
@@ -300,6 +301,9 @@ function superAgentCall(metadataURL, id, res, map) {
           }
         } catch (error) {
           console.log("Error with parsing : " + id + JSON.parse(response.text))
+          setTimeout(() => {
+            superAgentCall(metadataURL, id, res, map);
+         }, 2 * 1000);
           failedTokens.add(id);
         }
       }
